@@ -3,107 +3,92 @@ package com.example.kettu.myapplication;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.text.Editable;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+
+import android.widget.ListView;
+import android.widget.Spinner;
+
 import android.text.TextWatcher;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+
 
 
 public class MainActivity extends Activity {
-    TextView text;
-    EditText editText;
     Context context = null;
-    TextView text2;
+    Spinner theaterSpinner;
+    Spinner spinnerDateStart;
+    Spinner spinnerDateStop;
+    ListView movieListView;
+    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
-    TextWatcher textWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            String value = s.toString();
-            text.setText(value);
-        }
-        @Override
-        public void afterTextChanged(Editable s) {
-            String value = s.toString();
-            text.setText(value);
-        }
-    };
-
+    TheaterJanitor finnKino = new TheaterJanitor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        text = findViewById(R.id.textView);
-        text2 = findViewById(R.id.textView2);
-        editText = findViewById(R.id.editText);
-        editText.addTextChangedListener(textWatcher);
         context = MainActivity.this;
+        theaterSpinner = findViewById(R.id.pickUpTheater);
+        spinnerDateStart = findViewById(R.id.spinnerDateStart);
+        spinnerDateStop = findViewById(R.id.spinnerDateStop);
+        movieListView = findViewById(R.id.movieListView);
+
+        // Some weird stuff
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         System.out.println(context.getFilesDir());
+        readXML();
     }
 
-    public void printHello(View v) {
-        System.out.println("Hello World!\n");
-        text.setText("Hello World!");
+
+    public void readXML(){
+        System.out.println("Read XML");
+
+        ArrayList stringOfTheaters;
+        stringOfTheaters = finnKino.getTheaterStrings();
+
+        ArrayList dateList;
+        dateList = finnKino.getDateStrings();
+
+        // Theaters
+        ArrayAdapter adapter = new ArrayAdapter(this,
+                                                android.R.layout.simple_spinner_item,
+                                                stringOfTheaters);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        theaterSpinner.setAdapter(adapter);
+
+        // Start & stop dates
+        ArrayAdapter adapter2 = new ArrayAdapter(this,
+                                                android.R.layout.simple_spinner_item,
+                                                dateList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDateStart.setAdapter(adapter2);
+        spinnerDateStop.setAdapter(adapter2);
     }
 
-    public void copyText(View v) {
-        text.setText(editText.getText());
-        //text.setText("Hello World!");
-    }
+    public void searchMovies(View v) throws ParseException {
+        movieListView.setEmptyView(movieListView);
 
-    public void loadFile(View v){
-        try{
-            InputStream ins = context.openFileInput("testi.txt");
+        Date d1 = format.parse("2021-03-24");
+        Date d2 = format.parse("2021-03-27");
+        int chosen_one = theaterSpinner.getSelectedItemPosition();
+        System.out.println("chosen id = " + chosen_one);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(ins));
-            String s = "";
-            StringBuilder sbuild = new StringBuilder(100);
+        ArrayAdapter adapter3 = new ArrayAdapter(this,
+                android.R.layout.simple_spinner_item,
+                finnKino.getMovies(d1, d2, chosen_one));
 
-            while ((s = br.readLine()) != null){
-                sbuild.append(s);
-                System.out.println(s);
-                sbuild.append("\n");
-            }
-            editText.setText(sbuild);
-            ins.close();
-            text2.setText("File loaded.");
-        } catch (IOException e){
-            System.out.println(e.toString());
-        }
-    }
-
-    public void saveFile(View v){
-
-        try{
-            String s;
-            OutputStreamWriter out = new OutputStreamWriter(context.openFileOutput("testi.txt",
-                                                            Context.MODE_PRIVATE));
-
-            s = editText.getText().toString();
-
-            out.write(s);
-            out.flush();
-            out.close();
-            text2.setText("File saved.");
-        } catch (IOException e){
-            System.out.println(e.toString());
-        }
-    }
-
-    public void clearText(View v){
-        text2.setText("");
-        editText.getText().clear();
+        adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        movieListView.setAdapter(adapter3);
     }
 }
