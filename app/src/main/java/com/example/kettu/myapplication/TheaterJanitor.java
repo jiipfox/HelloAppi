@@ -118,6 +118,10 @@ public class TheaterJanitor {
         return 1;
     }
 
+    public String getDateString(int index){
+        return stringOfDates.get(index).toString();
+    }
+
     private void setDisplayDates(){
         System.out.println("Set display times from: " + datesXmlUrl);
         String dateSts = "";

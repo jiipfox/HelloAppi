@@ -79,6 +79,7 @@ public class MainActivity extends Activity {
     public void searchMovies(View v) throws ParseException {
         movieListView.setEmptyView(movieListView);
 
+        // Out of time, use dummy date!!
         Date d1 = format.parse("2021-03-24");
         Date d2 = format.parse("2021-03-27");
         int chosen_one = theaterSpinner.getSelectedItemPosition();
